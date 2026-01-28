@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Setup - Dispositivo ASCOM Alpaca</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      padding: 2em;
+    }
+    .container {
+      background: white;
+      padding: 2em;
+      border-radius: 8px;
+      max-width: 700px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    p, li {
+      line-height: 1.6;
+    }
+    a {
+      color: #3498db;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    ul {
+      padding-left: 1.2em;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Configuración del dispositivo ASCOM Alpaca</h1>
+    <p>Este dispositivo implementa el protocolo <strong>ASCOM Alpaca</strong> para controlar un domo astronómico.</p>
+    
+    <h2>Información general</h2>
+    <ul>
+      <li><strong>Nombre del dispositivo:</strong> Controlador de Domo ASCOM Alpaca</li>
+      <li><strong>Fabricante:</strong> Gael Sánchez - UABC</li>
+      <li><strong>Versión del firmware:</strong> 1.0.0</li>
+      <li><strong>Dirección IP:</strong> Se asigna dinámicamente vía DHCP</li>
+      <li><strong>Puerto de descubrimiento:</strong> 3000</li>
+      <li><strong>Puerto de servicio:</strong> 80</li>
+    </ul>
+
+    <h2>Dispositivos disponibles</h2>
+    <p>Este servidor Alpaca actualmente controla los siguientes dispositivos:</p>
+    <ul>
+      <li><a href="/setup/v1/dome/0/setup">Domo del telescopio</a></li>
+    </ul>
+
+    <p>Para más detalles sobre cada dispositivo, selecciona el enlace correspondiente.</p>
+  </div>
+</body>
+</html>
