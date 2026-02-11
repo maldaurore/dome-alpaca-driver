@@ -1,7 +1,9 @@
 import datetime
 from helpers import alpaca_endpoint, alpaca_response
 from flask import Flask, Response, request
-from state import DOME_STATE
+from controller import AlpacaException, controller
+
+SUPPORTED_ACTIONS = [ 'openwithoutflap', 'getflapstatus' ]
 
 def handle_not_implemented(request, client_id, server_id):
     return alpaca_response(
@@ -12,32 +14,29 @@ def handle_not_implemented(request, client_id, server_id):
     )
 
 def handle_get_connected(request, client_id, server_id):
-    # TO DO: implementar lógica real de obtención de estado de conexión
-    return alpaca_response(client_id=client_id, server_id=server_id, value=DOME_STATE["connected"])
+    connected = controller.get_connected()
+    return alpaca_response(client_id=client_id, server_id=server_id, value=connected)
 
 def handle_get_connecting(request, client_id, server_id):
-    # TO DO: implementar lógica real de obtención de estado de conexión en progreso
     return alpaca_response(client_id=client_id, server_id=server_id, value=False)
 
 def handle_get_description(request, client_id, server_id):
-    description = "Dome driver for the 14 inch telescope at IAE"
+    if not controller.get_connected():
+        return alpaca_response(
+            client_id=client_id,
+            server_id=server_id,
+            error_number=1031,
+            error_message="Dispositivo no conectado"
+        )
+    description = "Controlador de domo para el telescopio de 14 pulgadas del IAENS. Desarrollado por Gael Sánchez."
     return alpaca_response(client_id=client_id, server_id=server_id, value=description)
 
 def handle_get_device_state(request, client_id, server_id):
-    # TO DO: implementar lógica real de obtención del estado del dispositivo
-    # MOCKED DATA
-    device_state = [
-        {"Name": "AtHome", "Value": True},
-        {"Name": "AtPark", "Value": True},
-        {"Name": "Azimuth", "Value": 0.0},
-        {"Name": "ShutterStatus", "Value": 0},
-        {"Name": "Slewing", "Value": False},
-        {"Name": "TimeStamp", "Value": datetime.datetime.now()}
-    ]
+    device_state = controller.get_device_state()
     return alpaca_response(client_id=client_id, server_id=server_id, value=device_state)
 
 def handle_get_driver_info(request, client_id, server_id):
-    driver_info = "ASCOM Alpaca Dome Driver v1.0 - Controls a rotating dome with motorized shutter. Developed by Gael Sánchez (UABC). Supports optional flap exclusion for zenith visibility. Implements dome rotation, shutter control, and slaving support."
+    driver_info = "Controlador de Domo ASCOM Alpaca v1.0 - Controla un domo rotatorio con cortina motorizada. Desarrollado por Gael Sánchez (UABC). Soporta exlusión opcional de gajo para visibilidad del cenit."
     return alpaca_response(client_id=client_id, server_id=server_id, value=driver_info)
 
 def handle_get_driverversion(request, client_id, server_id):
@@ -49,63 +48,115 @@ def handle_get_interface_version(request, client_id, server_id):
     return alpaca_response(client_id=client_id, server_id=server_id, value=interface_version)
 
 def handle_get_name(request, client_id, server_id):
-    name = "Dome for the 14 inch telescope at IAENS"
+    name = "Domo del telescopio de 14 pulgadas - IAENS"
     return alpaca_response(client_id=client_id, server_id=server_id, value=name)
 
 def handle_get_supported_actions(request, client_id, server_id):
-    actions = [ 'openWithoutFlap' ]
-    return alpaca_response(client_id=client_id, server_id=server_id, value=actions)
+    return alpaca_response(client_id=client_id, server_id=server_id, value=SUPPORTED_ACTIONS)
 
 def handle_get_at_home(request, client_id, server_id):
-    # TO DO: implementar lógica real de obtención de estado AtHome
-    return alpaca_response(client_id=client_id, server_id=server_id, value=True)
+    value = controller.get_at_home()
+    return alpaca_response(client_id=client_id, server_id=server_id, value=value)
 
 def handle_get_at_park(request, client_id, server_id):
-    # TO DO: implementar lógica real de obtención de estado AtPark
-    return alpaca_response(client_id=client_id, server_id=server_id, value=True)
+    value = controller.get_at_park()
+    return alpaca_response(client_id=client_id, server_id=server_id, value=value)
+
 
 def handle_get_azimuth(request, client_id, server_id):
-    # TO DO: implementar lógica real de obtención de azimuth
-    azimuth = DOME_STATE["azimuth"]
-    return alpaca_response(client_id=client_id, server_id=server_id, value=azimuth)
+    value = controller.get_azimuth()
+    return alpaca_response(client_id=client_id, server_id=server_id, value=value)
 
 def handle_can_find_home(request, client_id, server_id):
+    if not controller.get_connected():
+        return alpaca_response(
+            client_id=client_id,
+            server_id=server_id,
+            error_number=1031,
+            error_message="Dispositivo no conectado"
+        )
     return alpaca_response(client_id=client_id, server_id=server_id, value=True)
 
 def handle_can_park(request, client_id, server_id):
+    if not controller.get_connected():
+        return alpaca_response(
+            client_id=client_id,
+            server_id=server_id,
+            error_number=1031,
+            error_message="Dispositivo no conectado"
+        )
     return alpaca_response(client_id=client_id, server_id=server_id, value=True)
 
 def handle_can_set_altitude(request, client_id, server_id):
+    if not controller.get_connected():
+        return alpaca_response(
+            client_id=client_id,
+            server_id=server_id,
+            error_number=1031,
+            error_message="Dispositivo no conectado"
+        )
     return alpaca_response(client_id=client_id, server_id=server_id, value=False)
 
 def handle_can_set_azimuth(request, client_id, server_id):
+    if not controller.get_connected():
+        return alpaca_response(
+            client_id=client_id,
+            server_id=server_id,
+            error_number=1031,
+            error_message="Dispositivo no conectado"
+        )
     return alpaca_response(client_id=client_id, server_id=server_id, value=True)
 
 def handle_can_set_park(request, client_id, server_id):
-    return alpaca_response(client_id=client_id, server_id=server_id, value=True)
+    if not controller.get_connected():
+        return alpaca_response(
+            client_id=client_id,
+            server_id=server_id,
+            error_number=1031,
+            error_message="Dispositivo no conectado"
+        )
+    return alpaca_response(client_id=client_id, server_id=server_id, value=False)
 
 def handle_can_set_shutter(request, client_id, server_id):
+    if not controller.get_connected():
+        return alpaca_response(
+            client_id=client_id,
+            server_id=server_id,
+            error_number=1031,
+            error_message="Dispositivo no conectado"
+        )
     return alpaca_response(client_id=client_id, server_id=server_id, value=True)
 
 def handle_can_slave(request, client_id, server_id):
+    if not controller.get_connected():
+        return alpaca_response(
+            client_id=client_id,
+            server_id=server_id,
+            error_number=1031,
+            error_message="Dispositivo no conectado"
+        )
     return alpaca_response(client_id=client_id, server_id=server_id, value=True)
 
 def handle_can_sync_to_azimuth(request, client_id, server_id):
+    if not controller.get_connected():
+        return alpaca_response(
+            client_id=client_id,
+            server_id=server_id,
+            error_number=1031,
+            error_message="Dispositivo no conectado"
+        )
     return alpaca_response(client_id=client_id, server_id=server_id, value=False)
 
 def handle_get_shutter_status(request, client_id, server_id):
-    # TO DO: implementar lógica real de obtención del estado del obturador
-    shutter_status = 0  # 0 = Closed, 1 = Open, 2 = Opening, 3 = Closing
+    shutter_status = controller.get_shutter_status()
     return alpaca_response(client_id=client_id, server_id=server_id, value=shutter_status)
 
 def handle_get_slaved(request, client_id, server_id):
-    # TO DO: implementar lógica real de obtención del estado Slaved
-    slaved = False
+    slaved = controller.get_slaved()
     return alpaca_response(client_id=client_id, server_id=server_id, value=slaved)
 
 def handle_get_slewing(request, client_id, server_id):
-    # TO DO: implementar lógica real de obtención del estado Slewing
-    slewing = False
+    slewing = controller.get_slewing()
     return alpaca_response(client_id=client_id, server_id=server_id, value=slewing)
 
 COMMANDS = {
@@ -149,6 +200,15 @@ def register_dome_get_routes(app):
                     error_message=f"Action '{action}' not recognized."
                 )
             return handler(request, client_id, server_id)
+        except AlpacaException as e:
+            return alpaca_response(
+                client_id=client_id,
+                server_id=server_id,
+                error_number=e.number,
+                error_message=e.message
+            )
         except Exception as e:
             return Response(f"Internal server error: {str(e)}", status=500, mimetype="text/plain")
-    return app
+        except Exception as e:
+            print(f"Error handling dome action '{action}': {str(e)}")
+            return Response(f"Internal server error: {str(e)}", status=500, mimetype="text/plain")

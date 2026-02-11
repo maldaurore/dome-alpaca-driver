@@ -6,6 +6,10 @@ def register_management_routes(app):
     def setup():
         return render_template('setup.html')
     
+    @app.route('/setup/v1/dome/0/setup', methods=['GET'])
+    def dome_setup():
+        return render_template('dome-setup.html')
+    
     @app.route('/management/apiversions', methods=['GET'])
     @alpaca_endpoint
     def api_versions(client_id, server_id):
