@@ -205,7 +205,8 @@ def register_dome_get_routes(app):
                 client_id=client_id,
                 server_id=server_id,
                 error_number=e.number,
-                error_message=e.message
+                error_message=e.message,
+                value=e.value
             )
         except Exception as e:
             return Response(f"Internal server error: {str(e)}", status=500, mimetype="text/plain")

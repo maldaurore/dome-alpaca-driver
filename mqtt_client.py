@@ -1,8 +1,6 @@
 import json
 import paho.mqtt.client as mqtt
 
-COMMANDS_TOPIC = "dome/commands"
-
 class MqttClient:
     def __init__(self):
         self.on_event = None 
@@ -18,9 +16,9 @@ class MqttClient:
         self.client.connect("localhost")
         self.client.loop_start()
 
-    def publish(self, payload):
+    def publish(self, payload, topic):
         self.client.publish(
-            COMMANDS_TOPIC,
+            topic,
             json.dumps(payload),
             qos=1
         )
@@ -32,5 +30,10 @@ class MqttClient:
         if not self.on_event:
             return
 
-        event = json.loads(msg.payload.decode())
+        raw = msg.payload.decode()
+        try:
+            event = json.loads(raw)
+        except Exception as e:
+            print("JSON ERROR:", e)
+            return
         self.on_event(event)

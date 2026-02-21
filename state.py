@@ -15,8 +15,7 @@ class FlapStatus(Enum):
 
 @dataclass
 class DomeState:
-    # CAMBIAR 'connected' AL TERMINAR EL DESARROLLO
-    connected: bool = True
+    connected: bool = False
     azimuth: float = None
     dome_slewing: bool = None
     slewing: bool = None
@@ -27,5 +26,5 @@ class DomeState:
     shutter_online: bool = None
     shutter_status: ShutterStatus = None
     flap_status: FlapStatus = None
-    fatal_error: bool = None
-    fatal_error_message: str = ""
+    error: str = ""
+    error_message: str = ""
