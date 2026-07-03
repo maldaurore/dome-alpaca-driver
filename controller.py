@@ -44,11 +44,11 @@ class DomeController:
 
     def finish_connect(self):
         if not self.state.base_online:
-            self.state.error = Errors.DEVICES_NOT_RESPONDING
-            self.state.error_message = "Los dispositivos no responden."
-            print("Error:", self.state.error_message)
+            print("Controlador del domo offline.")
+        elif not self.state.shutter_online:
+            print("Controlador de la cortina offline.")
         else:
-            print("Dispositivos conectados correctamente.")
+            print("Ambos controladores en línea.")
 
     def _response(self, error_number=0, error_message='', value=None):
         return {
@@ -71,6 +71,8 @@ class DomeController:
         return
         
     def get_flap_status(self):
+        if not self.state.connected:
+            raise AlpacaException(1031, "El dispositivo no está conectado.")
         return self.state.flap_status
     
     # TO DO: borrar flags de error
@@ -88,8 +90,6 @@ class DomeController:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
         if not self.state.shutter_online:
             raise AlpacaException(1035, "Cortina no conectada. Mueva el domo a Home para energizar la cortina.")
-        if self.state.error and self.state.error == Errors.SHUTTER_ERROR:
-            raise AlpacaException(Errors.SHUTTER_ERROR, self.state.error_message)
         # Si el gajo está arriba y la cortina está abierta, abriéndose o cerrándose, levantar error.
         if self.state.flap_status == 0 and (self.state.shutter_status == 0 or self.state.shutter_status == 2 or self.state.shutter_status == 3):
             raise AlpacaException(1035, "La cortina no está cerrada. Debe estar cerrada para abrir sin gajo.")
@@ -109,8 +109,6 @@ class DomeController:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
         if not self.state.shutter_online:
             raise AlpacaException(1035, "Cortina no conectada. Mueva el domo a Home para energizar la cortina.")
-        if self.state.error and self.state.error == Errors.SHUTTER_ERROR:
-            raise AlpacaException(Errors.SHUTTER_ERROR, self.state.error_message)
         if self.state.shutter_status == 0 or 2:
             self.send_command(
                 {"cmd": "closeshutter"},
@@ -123,8 +121,6 @@ class DomeController:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
         if self.state.slaved:
             raise AlpacaException(1033, "Operación inválida cuando el domo está slaved.")
-        if self.state.error and self.state.error == Errors.FIND_HOME_ERROR:
-            raise AlpacaException(Errors.FIND_HOME_ERROR, self.state.error_message)
         self.send_command(
             {"cmd": "findhome"},
             BASE_COMMANDS_TOPIC
@@ -136,8 +132,6 @@ class DomeController:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
         if not self.state.shutter_online:
             raise AlpacaException(1035, "Cortina no conectada. Mueva el domo a Home para energizar la cortina")
-        if self.state.error and self.state.error == Errors.SHUTTER_ERROR:
-            raise AlpacaException(Errors.SHUTTER_ERROR, self.state.error_message)
         if self.state.shutter_status == 1 or 3:
             self.send_command(
                 {"cmd": "openshutter"},
@@ -149,9 +143,7 @@ class DomeController:
         if not self.state.connected:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
         if not self.state.base_online:
-            raise AlpacaException(1031, "Controlador de domo no disponible. Revise el hardware o conexión MQTT.")
-        if self.state.error and self.state.error == Errors.FIND_HOME_ERROR:
-            raise AlpacaException(Errors.FIND_HOME_ERROR, self.state.error_message)
+            raise AlpacaException(1035, "Controlador de domo no disponible. Revise el hardware o conexión MQTT.")
         if not self.state.at_park:
             self.send_command(
                 {"cmd": "park"},
@@ -163,7 +155,7 @@ class DomeController:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
         if not self.state.base_online:
             raise AlpacaException(
-                number=1031,
+                number=1035,
                 message="Controlador de domo no disponible. Revise el hardware o conexión MQTT."
             )
         if self.state.slaved:
@@ -171,8 +163,6 @@ class DomeController:
                 number=1033,
                 message="Operación inválida mientras el domo está slaved."
             )
-        if self.state.error and self.state.error == Errors.DOME_STALL_ERROR:
-            raise AlpacaException(Errors.DOME_STALL_ERROR, self.state.error_message)
         if az > 360 or az < 0:
             raise AlpacaException(
                 number=1025,
@@ -192,7 +182,7 @@ class DomeController:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
         if not self.state.base_online:
             raise AlpacaException(
-                number=1031,
+                number=1035,
                 message="Controlador de domo no disponible. Revise el hardware o conexión MQTT."
             )
         return self.state.at_home
@@ -202,7 +192,7 @@ class DomeController:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
         if not self.state.base_online:
             raise AlpacaException(
-                number=1031,
+                number=1035,
                 message="Controlador de domo no disponible. Revise el hardware o conexión MQTT."
             )
         return self.state.at_park
@@ -212,16 +202,25 @@ class DomeController:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
         if not self.state.base_online:
             raise AlpacaException(
-                number=1031,
+                number=1035,
                 message="Controlador de domo no disponible. Revise el hardware o conexión MQTT."
             )
-        if self.state.error and self.state.error == Errors.DOME_STALL_ERROR:
-            raise AlpacaException(Errors.FIND_HOME_ERROR, self.state.error_message)
+
+        if self.state.azimuth == None:
+            raise AlpacaException(
+                number=1026,
+                message="Azimuth desconocido."
+            )
         return self.state.azimuth
 
     def get_shutter_status(self):
         if not self.state.connected:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
+        if not self.state.shutter_online:
+            raise AlpacaException(
+                number=1035,
+                message="Cortina no conectada. Mueva el domo a Home para energizar la cortina"
+            )
         return self.state.shutter_status
     
     def get_slaved(self):
@@ -229,7 +228,7 @@ class DomeController:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
         if not self.state.base_online:
             raise AlpacaException(
-                number=1031,
+                number=1035,
                 message="Controlador de domo no disponible. Revise el hardware o conexión MQTT."
             )
         return self.state.slaved
@@ -239,7 +238,7 @@ class DomeController:
             raise AlpacaException(1031, "El dispositivo no está conectado.")
         if not self.state.base_online:
             raise AlpacaException(
-                number=1031,
+                number=1035,
                 message="Controlador de domo no disponible. Revise el hardware o conexión MQTT."
             )
         return self.state.slewing
@@ -248,7 +247,7 @@ class DomeController:
         if not self.state.connected:
             raise AlpacaException(
                 number=1031,
-                message="Controlador de domo no disponible. Revise el hardware o conexión MQTT."
+                message="El dispositivo no está conectado."
             )
         device_state = [
             {"Name": "AtHome", "Value": self.state.at_home},
@@ -276,9 +275,7 @@ class DomeController:
         if "at_park" in event:
             self.state.at_park = event["at_park"]
         if "shutter_status" in event:
-            # Evitar que se actualice el estado del shutter si hubo un error
-            if not self.state.error and not self.state.error == Errors.SHUTTER_ERROR:
-                self.state.shutter_status = event["shutter_status"]
+            self.state.shutter_status = event["shutter_status"]
         if "flap_status" in event:
             self.state.flap_status = event["flap_status"]
         if "slaved" in event:
@@ -287,22 +284,6 @@ class DomeController:
             self.state.slewing = True
         else:
             self.state.slewing = False
-        if "error" in event:
-            error = event["error"]
-            print(f"Error: {error}")
-            match error:
-                case Errors.SHUTTER_ERROR:
-                    self.state.error = Errors.SHUTTER_ERROR
-                    self.state.error_message = event["message"]
-                    self.state.shutter_status = 4
-                case Errors.DOME_STALL_ERROR:
-                    self.state.error = Errors.DOME_STALL_ERROR
-                    self.state.error_message = "No se detectó movimiento del domo. Revise cableado y motor."
-                case Errors.FIND_HOME_ERROR:
-                    self.state.error = Errors.FIND_HOME_ERROR
-                    self.state.error_message = event["message"]
-
-        #print("Dome state updated:", self.state)
 
     def get_connected(self):
         return self.state.connected
@@ -317,8 +298,7 @@ class DomeController:
                     if self.state.base_online:
                         print("Base perdido")
                     self.state.base_online = False
-                    self.state.error = Errors.DEVICES_NOT_RESPONDING
-                    self.state.error_message = "Se perdió la conexión con la base."
+
             else:
                 self.state.base_online = False
 

@@ -62,7 +62,6 @@ def handle_get_at_park(request, client_id, server_id):
     value = controller.get_at_park()
     return alpaca_response(client_id=client_id, server_id=server_id, value=value)
 
-
 def handle_get_azimuth(request, client_id, server_id):
     value = controller.get_azimuth()
     return alpaca_response(client_id=client_id, server_id=server_id, value=value)
@@ -197,7 +196,7 @@ def register_dome_get_routes(app):
                     client_id=client_id,
                     server_id=server_id,
                     error_number=1035,
-                    error_message=f"Action '{action}' not recognized."
+                    error_message=f"Acción '{action}' no reconocida."
                 )
             return handler(request, client_id, server_id)
         except AlpacaException as e:
@@ -208,8 +207,6 @@ def register_dome_get_routes(app):
                 error_message=e.message,
                 value=e.value
             )
-        except Exception as e:
-            return Response(f"Internal server error: {str(e)}", status=500, mimetype="text/plain")
         except Exception as e:
             print(f"Error handling dome action '{action}': {str(e)}")
             return Response(f"Internal server error: {str(e)}", status=500, mimetype="text/plain")
